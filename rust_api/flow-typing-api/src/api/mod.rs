@@ -1,7 +1,6 @@
 use actix_web::web; // 引入actix_web的web模块
 
-mod handlers; // 引入自定义的handlers模块
-use handlers::article; // 使用handlers中的article
+use crate::handlers::article; // 使用handlers中的article，确保路径正确
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) { // 初始化路由函数
     cfg.service(

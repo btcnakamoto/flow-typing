@@ -3,6 +3,7 @@ use std::sync::Mutex; // 引入标准库中的Mutex，用于线程安全
 
 mod api; // 引入自定义的api模块
 mod models; // 引入自定义的models模块
+mod handlers;
 
 #[actix_web::main] // 使用Actix的main宏
 async fn main() -> std::io::Result<()> { // 异步主函数，返回std::io::Result
