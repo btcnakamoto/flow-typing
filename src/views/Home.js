@@ -4,6 +4,7 @@ import TypingLine from '../components/TypingLine';
 import ChapterNavigator from '../components/ChapterNavigator';
 
 const Home = ({ chapters }) => {
+  const LINE_LENGTH = 57; // 统一定义每行字符数
   const [currentArticle, setCurrentArticle] = useState(null);
   const [content, setContent] = useState([]);
   const [userInput, setUserInput] = useState([]);
@@ -12,15 +13,39 @@ const Home = ({ chapters }) => {
   const [backspaces, setBackspaces] = useState(0);
   const contentRef = useRef(null);
   const [loading, setLoading] = useState(false);
-  const [start, setStart] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const length = 1000; // 每次加载1000个字符
+  const [articleId, setArticleId] = useState(null);
 
   useEffect(() => {
-    fetchArticle(0);
+    fetchArticle();
   }, []);
 
-  const startTimer = useCallback(() => {
+  useEffect(() => {
+    if (content.length > 0) {
+      startTimer();
+    }
+    return () => clearInterval(intervalId);
+  }, [content, intervalId]);
+
+  const fetchArticle = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/article/random`);
+      const article = response.data;
+      setCurrentArticle(article);
+      setArticleId(article.id);
+      const initialContent = splitContent(article.content.slice(0, 1000), LINE_LENGTH);
+      setContent(initialContent);
+      setUserInput(Array(initialContent.length).fill(''));
+    } catch (error) {
+      console.error('Error fetching article:', error);
+    }
+  };
+
+  const splitContent = (content, length) => {
+    const regex = new RegExp(`.{1,${length}}`, 'g');
+    return content.match(regex) || [];
+  };
+
+  const startTimer = () => {
     const id = setInterval(() => {
       setTimer(prevTimer => {
         if (prevTimer === 1) {
@@ -31,30 +56,6 @@ const Home = ({ chapters }) => {
       });
     }, 1000);
     setIntervalId(id);
-  }, []);
-
-  useEffect(() => {
-    if (content.length > 0) {
-      startTimer();
-    }
-    return () => clearInterval(intervalId);
-  }, [content, startTimer]);
-
-  const fetchArticle = async (start) => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/article/1/content`, {
-        params: { start, length },
-      });
-
-      const content = response.data.content;
-
-      setCurrentArticle(response.data);
-      setContent(prevContent => [...prevContent, ...content.split('\n')]);
-      setUserInput(prevInput => [...prevInput, ...Array(content.length).fill('')]);
-      setHasMore(response.data.has_more);
-    } catch (error) {
-      console.error('Error fetching article:', error);
-    }
   };
 
   const pause = () => {
@@ -100,13 +101,22 @@ const Home = ({ chapters }) => {
     return totalChars ? Math.round((correctChars / totalChars) * 100) : 0;
   };
 
-  const loadMoreContent = useCallback(() => {
-    if (!hasMore || loading) return;
+  const loadMoreContent = useCallback(async () => {
+    if (!currentArticle || loading) return;
+
     setLoading(true);
-    setStart(prevStart => prevStart + length);
-    fetchArticle(start + length);
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/article/${articleId}/content`, {
+        params: { start: content.length * LINE_LENGTH, length: 1000 }
+      });
+      const newContent = splitContent(response.data.content, LINE_LENGTH);
+      setContent(prevContent => [...prevContent, ...newContent]);
+      setUserInput(prevInput => [...prevInput, ...Array(newContent.length).fill('')]);
+    } catch (error) {
+      console.error('Error loading more content:', error);
+    }
     setLoading(false);
-  }, [hasMore, loading, start, length]);
+  }, [currentArticle, content.length, loading, articleId]);
 
   const handleScroll = useCallback(() => {
     if (contentRef.current) {
@@ -147,6 +157,9 @@ const Home = ({ chapters }) => {
       {currentArticle && (
         <div>
           <h2>{currentArticle.title}</h2>
+          <p>难度: {currentArticle.difficulty_level}</p>
+          <p>语言: {currentArticle.language}</p>
+          <p>单词数: {currentArticle.word_count}</p>
         </div>
       )}
       <div className="content" ref={contentRef}>

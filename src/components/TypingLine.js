@@ -20,7 +20,7 @@ const TypingLine = ({ line, input, onChange }) => {
   };
 
   return (
-    <div>
+    <div className="typing-line">
       <div className="text-line" dangerouslySetInnerHTML={highlightedText()}></div>
       <input
         type="text"
