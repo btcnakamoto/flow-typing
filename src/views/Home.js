@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import axios from 'axios'; // 确保安装了axios
 import TypingLine from '../components/TypingLine';
 import ChapterNavigator from '../components/ChapterNavigator';
 
 const Home = ({ chapters }) => {
-  const initialText = `本书内容是一个我们称之为“荒原狼”的人留下的自述。他之所以有此雅号是因为他多次自称“荒原狼”。他的文稿是否需要加序，我们可以姑且不论；不过，我觉得需要在荒原狼的自述前稍加几笔，记下我对他的回忆。
-  `;
-
-  const [currentChapter] = useState({ text: initialText });
-  const [content, setContent] = useState(currentChapter.text.split('\n').slice(0, 20));
-  const [userInput, setUserInput] = useState(Array(content.length).fill(''));
+  const [currentArticle, setCurrentArticle] = useState(null);
+  const [content, setContent] = useState([]);
+  const [userInput, setUserInput] = useState([]);
   const [timer, setTimer] = useState(300);
   const [intervalId, setIntervalId] = useState(null);
   const [backspaces, setBackspaces] = useState(0);
@@ -16,9 +14,27 @@ const Home = ({ chapters }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    startTimer();
-    return () => clearInterval(intervalId); // 清除定时器
-  }, [intervalId]); // 添加 intervalId 作为依赖
+    fetchArticle();
+  }, []);
+
+  useEffect(() => {
+    if (content.length > 0) {
+      startTimer();
+    }
+    return () => clearInterval(intervalId);
+  }, [content, intervalId]);
+
+  const fetchArticle = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/article/random`);
+      setCurrentArticle(response.data);
+      const initialContent = response.data.content.split('\n').slice(0, 20);
+      setContent(initialContent);
+      setUserInput(Array(initialContent.length).fill(''));
+    } catch (error) {
+      console.error('Error fetching article:', error);
+    }
+  };
 
   const startTimer = () => {
     const id = setInterval(() => {
@@ -77,14 +93,15 @@ const Home = ({ chapters }) => {
   };
 
   const loadMoreContent = useCallback(() => {
+    if (!currentArticle) return;
+    
     setLoading(true);
-    // 模拟加载新内容，这里可以替换为实际的API调用
-    const allLines = currentChapter.text.split('\n');
+    const allLines = currentArticle.content.split('\n');
     const newLines = allLines.slice(content.length, content.length + 20);
     setContent(prevContent => [...prevContent, ...newLines]);
     setUserInput(prevInput => [...prevInput, ...Array(newLines.length).fill('')]);
     setLoading(false);
-  }, [content.length, currentChapter.text]);
+  }, [content.length, currentArticle]);
 
   const handleScroll = useCallback(() => {
     if (contentRef.current) {
@@ -122,6 +139,14 @@ const Home = ({ chapters }) => {
   return (
     <div className="container">
       <ChapterNavigator chapters={chapters} />
+      {currentArticle && (
+        <div>
+          <h2>{currentArticle.title}</h2>
+          <p>难度: {currentArticle.difficulty_level}</p>
+          <p>语言: {currentArticle.language}</p>
+          <p>单词数: {currentArticle.word_count}</p>
+        </div>
+      )}
       <div className="content" ref={contentRef}>
         {content.map((line, index) => (
           <div key={index} className="text-section">
