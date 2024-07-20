@@ -18,33 +18,9 @@ const Home = ({ chapters }) => {
 
   useEffect(() => {
     fetchArticle(0);
-  }, []); // 确保只有组件首次渲染时调用
+  }, []);
 
-  useEffect(() => {
-    if (content.length > 0) {
-      startTimer();
-    }
-    return () => clearInterval(intervalId);
-  }, [content]); // 只在 content 更改时调用
-
-  const fetchArticle = async (start) => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/article/1/content`, {
-        params: { start, length },
-      });
-      
-      const content = response.data.content;
-      
-      setCurrentArticle(response.data);
-      setContent(prevContent => [...prevContent, ...content.split('\n')]);
-      setUserInput(prevInput => [...prevInput, ...Array(content.length).fill('')]);
-      setHasMore(response.data.has_more);
-    } catch (error) {
-      console.error('Error fetching article:', error);
-    }
-  };
-
-  const startTimer = () => {
+  const startTimer = useCallback(() => {
     const id = setInterval(() => {
       setTimer(prevTimer => {
         if (prevTimer === 1) {
@@ -55,6 +31,30 @@ const Home = ({ chapters }) => {
       });
     }, 1000);
     setIntervalId(id);
+  }, []);
+
+  useEffect(() => {
+    if (content.length > 0) {
+      startTimer();
+    }
+    return () => clearInterval(intervalId);
+  }, [content, startTimer]);
+
+  const fetchArticle = async (start) => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/article/1/content`, {
+        params: { start, length },
+      });
+
+      const content = response.data.content;
+
+      setCurrentArticle(response.data);
+      setContent(prevContent => [...prevContent, ...content.split('\n')]);
+      setUserInput(prevInput => [...prevInput, ...Array(content.length).fill('')]);
+      setHasMore(response.data.has_more);
+    } catch (error) {
+      console.error('Error fetching article:', error);
+    }
   };
 
   const pause = () => {
@@ -106,7 +106,7 @@ const Home = ({ chapters }) => {
     setStart(prevStart => prevStart + length);
     fetchArticle(start + length);
     setLoading(false);
-  }, [hasMore, loading, start, length]); // 确保 useCallback 的依赖项是稳定的
+  }, [hasMore, loading, start, length]);
 
   const handleScroll = useCallback(() => {
     if (contentRef.current) {
@@ -125,7 +125,7 @@ const Home = ({ chapters }) => {
         currentRef.removeEventListener('scroll', handleScroll);
       };
     }
-  }, [handleScroll]); // 确保 handleScroll 是稳定的
+  }, [handleScroll]);
 
   const timerText = `${Math.floor(timer / 60)}:${timer % 60 < 10 ? '0' : ''}${timer % 60}`;
 
