@@ -25,6 +25,33 @@ class ArticleController extends Controller
         ]);
     }
 
+
+    //分页
+    public function getPaginatedArticle($id, Request $request)
+    {
+        $start = $request->query('start', 0);
+        $length = $request->query('length', 1000);
+
+        $article = TypingArticle::find($id);
+
+        if (!$article) {
+            return response()->json(['error' => 'Article not found'], 404);
+        }
+
+        $content = mb_substr($article->content, $start, $length);
+        $hasMore = $start + $length < mb_strlen($article->content);
+
+        return response()->json([
+            'id' => $article->id,
+            'title' => $article->title,
+            'content' => $content,
+            'difficulty_level' => $article->difficulty_level,
+            'language' => $article->language,
+            'word_count' => $article->word_count,
+            'has_more' => $hasMore,
+        ]);
+    }
+
     public function getArticleById($id)
     {
         $article = TypingArticle::find($id);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios'; // 确保安装了axios
+import axios from 'axios';
 import TypingLine from '../components/TypingLine';
 import ChapterNavigator from '../components/ChapterNavigator';
 
@@ -12,25 +12,33 @@ const Home = ({ chapters }) => {
   const [backspaces, setBackspaces] = useState(0);
   const contentRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [start, setStart] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const length = 1000; // 每次加载1000个字符
 
   useEffect(() => {
-    fetchArticle();
-  }, []);
+    fetchArticle(0);
+  }, []); // 确保只有组件首次渲染时调用
 
   useEffect(() => {
     if (content.length > 0) {
       startTimer();
     }
     return () => clearInterval(intervalId);
-  }, [content, intervalId]);
+  }, [content]); // 只在 content 更改时调用
 
-  const fetchArticle = async () => {
+  const fetchArticle = async (start) => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/article/random`);
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/article/1/content`, {
+        params: { start, length },
+      });
+      
+      const content = response.data.content;
+      
       setCurrentArticle(response.data);
-      const initialContent = response.data.content.split('\n').slice(0, 20);
-      setContent(initialContent);
-      setUserInput(Array(initialContent.length).fill(''));
+      setContent(prevContent => [...prevContent, ...content.split('\n')]);
+      setUserInput(prevInput => [...prevInput, ...Array(content.length).fill('')]);
+      setHasMore(response.data.has_more);
     } catch (error) {
       console.error('Error fetching article:', error);
     }
@@ -93,15 +101,12 @@ const Home = ({ chapters }) => {
   };
 
   const loadMoreContent = useCallback(() => {
-    if (!currentArticle) return;
-    
+    if (!hasMore || loading) return;
     setLoading(true);
-    const allLines = currentArticle.content.split('\n');
-    const newLines = allLines.slice(content.length, content.length + 20);
-    setContent(prevContent => [...prevContent, ...newLines]);
-    setUserInput(prevInput => [...prevInput, ...Array(newLines.length).fill('')]);
+    setStart(prevStart => prevStart + length);
+    fetchArticle(start + length);
     setLoading(false);
-  }, [content.length, currentArticle]);
+  }, [hasMore, loading, start, length]); // 确保 useCallback 的依赖项是稳定的
 
   const handleScroll = useCallback(() => {
     if (contentRef.current) {
@@ -120,7 +125,7 @@ const Home = ({ chapters }) => {
         currentRef.removeEventListener('scroll', handleScroll);
       };
     }
-  }, [handleScroll]);
+  }, [handleScroll]); // 确保 handleScroll 是稳定的
 
   const timerText = `${Math.floor(timer / 60)}:${timer % 60 < 10 ? '0' : ''}${timer % 60}`;
 
@@ -142,9 +147,6 @@ const Home = ({ chapters }) => {
       {currentArticle && (
         <div>
           <h2>{currentArticle.title}</h2>
-          <p>难度: {currentArticle.difficulty_level}</p>
-          <p>语言: {currentArticle.language}</p>
-          <p>单词数: {currentArticle.word_count}</p>
         </div>
       )}
       <div className="content" ref={contentRef}>
