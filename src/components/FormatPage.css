@@ -1,0 +1,159 @@
+/* FormatPage.css */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #2e2e2e;
+    color: #ffffff;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #1c1c1c;
+  }
+  
+  .header h1 {
+    margin: 0;
+    font-size: 24px;
+  }
+  
+  .header nav {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .header .back-button {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    margin-right: auto;
+  }
+  
+  .header .book-title {
+    margin-left: 20px;
+    font-size: 16px;
+  }
+  
+  .header .right-buttons {
+    margin-left: auto;
+    display: flex;
+    gap: 20px;
+  }
+  
+  .header button {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .header .profile-button {
+    font-size: 20px;
+  }
+  
+  .main-content {
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+  }
+  
+  .chapter-list {
+    flex: 2;
+    margin-right: 20px;
+  }
+  
+  .chapter-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .chapter-list-header input {
+    background: none;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+    padding: 5px;
+    font-size: 16px;
+    width: 50%;
+  }
+  
+  .chapter-previews ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .chapter-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #3a3a3a;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+  }
+  
+  .chapter-item .page-count {
+    margin-left: auto;
+    margin-right: 20px;
+  }
+  
+  .chapter-item .expand-button {
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .format-options {
+    flex: 1;
+    background-color: #1c1c1c;
+    padding: 20px;
+    border-radius: 5px;
+  }
+  
+  .how-to-button, .finish-button, .reformat-text-button {
+    background-color: #444444;
+    border: none;
+    color: #ffffff;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+  
+  .options {
+    margin-top: 20px;
+  }
+  
+  .option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .option input[type="checkbox"],
+  .option input[type="radio"],
+  .option input[type="number"] {
+    margin-left: 10px;
+  }
+  
+  .reset-button {
+    background-color: #ff4444;
+    border: none;
+    color: #ffffff;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 20px;
+    width: 100%;
+  }

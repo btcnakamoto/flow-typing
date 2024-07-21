@@ -1,26 +1,25 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import TopPage from './components/TopPage';
-import Home from './views/Home';
-import './App.css';
+import ImportText from './components/ImportText'; // 确保你已经创建了这个组件
+import FormatPage from './components/FormatPage'; // 引入新创建的 FormatPage 组件
+import ChaptersPage from './components/ChaptersPage'; // 引入新创建的 ChaptersPage 组件
+import TypingConsole from './components/TypingConsole'; // 引入新创建的 TypingConsole 组件
 
-const chapters = [
-  { title: '第一章', text: '...小说的第一章内容...' },
-  { title: '第二章', text: '...小说的第二章内容...' },
-  // ...更多章节
-];
 
-function App() {
+const App = () => {
   return (
     <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<TopPage />} />
-          <Route path="/chapter/:chapterId" element={<Home chapters={chapters} />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={<TopPage />} />
+        <Route path="/importtext" element={<ImportText />} />
+        <Route path="/format" element={<FormatPage />} />
+        <Route path="/chapters" element={<ChaptersPage />} /> {/* 新增 ChaptersPage 路由 */}
+        <Route path="/typing-console/:chapterId" element={<TypingConsole />} />
+        {/* 你可以在这里添加更多的路由 */}
+      </Routes>
     </Router>
   );
-}
+};
 
 export default App;

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Words with Confetti</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        #container {
+            position: relative;
+            width: 80%;
+            height: 80%;
+        }
+
+        .word {
+            position: absolute;
+            font-size: 24px;
+            user-select: none;
+        }
+
+        @keyframes disappear {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+
+        .word.disappear {
+            animation: disappear 0.5s forwards;
+        }
+
+        .circle-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px; /* Double the previous width */
+            height: 400px; /* Double the previous height */
+            animation: rotate 10s linear infinite;
+        }
+
+        .circle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: red;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div class="circle-container" id="circle-container"></div>
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+        <h1>zentype</h1>
+        <p>practice everyday to become a fast typist</p>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        const words = ['here', 'against', 'let', 'guy', 'picture', 'cell'];
+        const container = document.getElementById('container');
+        const circleContainer = document.getElementById('circle-container');
+        const colors = ['#FF6347', '#FFD700', '#ADFF2F', '#1E90FF', '#DA70D6'];
+        let currentInput = '';
+
+        function createWord(text) {
+            const word = document.createElement('div');
+            word.className = 'word';
+            word.textContent = text;
+            container.appendChild(word);
+
+            // Random position
+            word.style.left = Math.random() * 80 + '%';
+            word.style.top = Math.random() * 80 + '%';
+
+            // Animation with more randomness
+            animateWord(word);
+
+            return word;
+        }
+
+        function animateWord(word) {
+            const moveX = Math.random() * 600 - 300; // Increase range for more randomness
+            const moveY = Math.random() * 600 - 300; // Increase range for more randomness
+            const rotate = Math.random() * 360;
+            const duration = Math.random() * 3000 + 2000;
+
+            word.animate([
+                { transform: `translate(0, 0) rotate(0deg)` },
+                { transform: `translate(${moveX}px, ${moveY}px) rotate(${rotate}deg)` }
+            ], {
+                duration: duration,
+                iterations: Infinity,
+                direction: 'alternate',
+                easing: 'ease-in-out'
+            });
+        }
+
+        function checkInput() {
+            const matchedWord = Array.from(container.children).find(word => word.textContent === currentInput);
+            if (matchedWord) {
+                // Add confetti effect
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+
+                matchedWord.classList.add('disappear');
+                matchedWord.addEventListener('animationend', () => {
+                    container.removeChild(matchedWord);
+                });
+                currentInput = ''; // Reset input after a match
+            }
+        }
+
+        document.addEventListener('keydown', (event) => {
+            currentInput += event.key;
+            checkInput();
+        });
+
+        words.forEach(createWord);
+
+        // Create rotating dots
+        const numDots = 40;
+        for (let i = 0; i < numDots; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'circle';
+            dot.style.backgroundColor = colors[i % colors.length];
+            const angle = (i / numDots) * 360;
+            const radius = 180; // increased radius
+            dot.style.transform = `rotate(${angle}deg) translate(${radius}px)`;
+            circleContainer.appendChild(dot);
+        }
+    </script>
+</body>
+</html>

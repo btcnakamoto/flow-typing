@@ -17,7 +17,7 @@ const Home = ({ chapters }) => {
 
   useEffect(() => {
     fetchArticle();
-  }, []);
+  }, [fetchArticle]);
 
   useEffect(() => {
     if (content.length > 0) {
