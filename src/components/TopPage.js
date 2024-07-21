@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getBooksFromDB } from '../db'; // 引入获取数据的函数
 import './TopPage.css';
 
 const books = [
@@ -16,10 +17,27 @@ const books = [
 
 const TopPage = () => {
   const [activeTab, setActiveTab] = useState('classics');
+  const [customBooks, setCustomBooks] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (activeTab === 'custom') {
+      const fetchCustomBooks = async () => {
+        const booksFromDB = await getBooksFromDB();
+        console.log('Custom books from IndexedDB:', booksFromDB); // 输出获取的书本列表
+        setCustomBooks(booksFromDB);
+      };
+
+      fetchCustomBooks();
+    }
+  }, [activeTab]);
 
   const handleAddCustomText = () => {
     navigate('/importtext');
+  };
+
+  const handleBookClick = (bookId) => {
+    navigate(`/chapters/${bookId}`); // 使用 navigate 跳转到 ChaptersPage 页面，并传递书本的 id
   };
 
   return (
@@ -72,10 +90,24 @@ const TopPage = () => {
                 </div>
               ))
             ) : (
-              // 显示自定义模式的添加按钮
-              <div className="add-custom-book">
-                <button className="add-button" onClick={handleAddCustomText}>+</button>
-                <p>Add custom text</p>
+              // 显示自定义模式的书籍
+              <div>
+                {customBooks.length > 0 ? (
+                  customBooks.map(book => (
+                    <div key={book.id} className="book-card" onClick={() => handleBookClick(book.id)}>
+                      <img src="/images/previewbook.jpg" alt={book.title} />
+                      <div className="book-info">
+                        <h4>{book.title}</h4>
+                        <p>{book.author || 'Unknown Author'}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="add-custom-book">
+                    <button className="add-button" onClick={handleAddCustomText}>+</button>
+                    <p>Add custom text</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

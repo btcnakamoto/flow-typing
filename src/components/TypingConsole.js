@@ -6,23 +6,32 @@ import './TypingConsole.css';
 const TypingConsole = () => {
   const { chapterId } = useParams();
   const [chapter, setChapter] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const charactersPerPage = 2000; // 每页字符数
 
   useEffect(() => {
     const fetchChapter = async () => {
       const chapters = await getChaptersFromDB();
-      const selectedChapter = chapters.find(ch => ch.id === Number(chapterId));
-      setChapter(selectedChapter);
+      const selectedChapter = chapters.find(chap => chap.id === parseInt(chapterId, 10));
+      if (selectedChapter) {
+        setChapter(selectedChapter);
+        setTotalPages(Math.ceil(selectedChapter.text.length / charactersPerPage));
+      }
+      setLoading(false);
     };
+
     fetchChapter();
   }, [chapterId]);
 
-  const chunkText = (text, chunkSize) => {
-    const regex = new RegExp(`.{1,${chunkSize}}`, 'g');
-    return text.match(regex);
-  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-  const textByPages = chapter ? chunkText(chapter.text, 2000) : [];
+  if (!chapter) {
+    return <div>Chapter not found</div>;
+  }
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
@@ -31,38 +40,27 @@ const TypingConsole = () => {
   };
 
   const handleNextPage = () => {
-    if (currentPage < textByPages.length) {
+    if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
 
+  const start = (currentPage - 1) * charactersPerPage;
+  const end = start + charactersPerPage;
+  const currentText = chapter.text.slice(start, end);
+
   return (
     <div className="typing-console">
       <header className="header">
-        <nav>
-          <span>Books / Chapters / Typing Console</span>
-        </nav>
-        <div className="chapter-info">
-          <span>{chapter ? chapter.title : 'Loading...'}</span>
-          <span>Page {currentPage}/{textByPages.length}</span>
-          <span>— WPM</span>
-          <span>— ACC</span>
-          <button className="profile-button">👤</button>
-          <button className="refresh-button">🔄</button>
-          <button className="settings-button">⚙️</button>
-        </div>
+        <h1>{chapter.title}</h1>
       </header>
       <main className="main-content">
-        <div className="text-display">
-          {textByPages[currentPage - 1] && textByPages[currentPage - 1].split('\n').map((line, index) => (
-            <p key={index}>{line}</p>
-          ))}
-        </div>
-        <div className="pagination-controls">
-          <button onClick={handlePreviousPage} disabled={currentPage === 1}>{'<'}</button>
-          <button onClick={handleNextPage} disabled={currentPage === textByPages.length}>{'>'}</button>
-        </div>
+        <p>{currentText}</p>
       </main>
+      <footer className="footer">
+        {currentPage > 1 && <button onClick={handlePreviousPage}>Previous</button>}
+        {currentPage < totalPages && <button onClick={handleNextPage}>Next</button>}
+      </footer>
     </div>
   );
 };
